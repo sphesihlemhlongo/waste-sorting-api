@@ -27,6 +27,11 @@ public class RecyclingTipController {
 
     @GetMapping
     public ResponseEntity<List<RecyclingTip>> getAllRecyclingTips() {
-        return ResponseEntity.ok(recyclingTipRepository.findAll());
+        List<RecyclingTip> tips = recyclingTipRepository.findAll();
+        if (tips.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(tips);
+        }
+        return ResponseEntity.ok(tips);
     }
+
 }
