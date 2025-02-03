@@ -1,5 +1,7 @@
 package com.enviro.assessment.grad001.sphesihlemhlongo.wastesortingapi.controller;
 
+import com.enviro.assessment.grad001.sphesihlemhlongo.wastesortingapi.dto.WasteCategoryDTO;
+import com.enviro.assessment.grad001.sphesihlemhlongo.wastesortingapi.exception.EntityNotFoundException;
 import com.enviro.assessment.grad001.sphesihlemhlongo.wastesortingapi.model.WasteCategory;
 import com.enviro.assessment.grad001.sphesihlemhlongo.wastesortingapi.repository.WasteCategoryRepository;
 import com.enviro.assessment.grad001.sphesihlemhlongo.wastesortingapi.service.WasteCategoryService;
@@ -11,8 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/waste-categories")
@@ -21,7 +23,7 @@ public class WasteCategoryController {
     private final WasteCategoryService wasteCategoryService;
     @Autowired
     private WasteCategoryRepository wasteCategoryRepository;
-    private static final Logger logger = LoggerFactory.getLogger(WasteCategoryController.class);
+//    private static final Logger logger = LoggerFactory.getLogger(WasteCategoryController.class);
 
 
     public WasteCategoryController(WasteCategoryService wasteCategoryService) {
@@ -50,41 +52,24 @@ public class WasteCategoryController {
 
     // Update a waste category
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateWasteCategory(@PathVariable Long id, @Valid @RequestBody WasteCategory updatedCategory) {
-        try {
-            return wasteCategoryRepository.findById(id)
-                    .map(existingCategory -> {
-                        existingCategory.setName(updatedCategory.getName());
-                        existingCategory.setDisposalGuidelines(updatedCategory.getDisposalGuidelines());
-                        WasteCategory savedCategory = wasteCategoryRepository.save(existingCategory);
-                        return ResponseEntity.ok(savedCategory);
-                    })
-                    .orElseGet(() -> {
-                        logger.error("Waste Category with ID {} not found", id);
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-                    });
-        } catch (Exception e) {
-            logger.error("Error updating Waste Category with ID {}: {}", id, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating Waste Category");
-        }
+    public ResponseEntity<WasteCategory> updateWasteCategory(@PathVariable Long id, @Valid @RequestBody WasteCategoryDTO categoryDTO) {
+        WasteCategory existingCategory = wasteCategoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Waste Category with ID " + id + " not found"));
+
+        existingCategory.setName(categoryDTO.getName());
+        existingCategory.setDisposalGuidelines(categoryDTO.getDisposalGuidelines());
+
+        WasteCategory savedCategory = wasteCategoryRepository.save(existingCategory);
+        return ResponseEntity.ok(savedCategory);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteWasteCategory(@PathVariable Long id) {
-        try {
-            return wasteCategoryRepository.findById(id)
-                    .map(category -> {
-                        wasteCategoryRepository.delete(category);
-                        return ResponseEntity.ok("Waste Category deleted successfully");
-                    })
-                    .orElseGet(() -> {
-                        logger.error("Waste Category with ID {} not found", id);
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Waste Category not found");
-                    });
-        } catch (Exception e) {
-            logger.error("Error deleting Waste Category with ID {}: {}", id, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting Waste Category");
-        }
+    public ResponseEntity<String> deleteWasteCategory(@PathVariable Long id) {
+        WasteCategory category = wasteCategoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Waste Category with ID " + id + " not found"));
+
+        wasteCategoryRepository.delete(category);
+        return ResponseEntity.ok("Waste Category deleted successfully");
     }
 
     // Retrieve Disposal Guidelines by Waste Category

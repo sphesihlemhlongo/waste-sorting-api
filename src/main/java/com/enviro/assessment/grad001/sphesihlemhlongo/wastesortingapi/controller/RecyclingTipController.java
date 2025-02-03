@@ -34,4 +34,28 @@ public class RecyclingTipController {
         return ResponseEntity.ok(tips);
     }
 
+    // Update a Recycling Tip
+    @PutMapping("/{id}")
+    public ResponseEntity<RecyclingTip> updateRecyclingTip(@PathVariable Long id, @Valid @RequestBody RecyclingTip updatedTip) {
+        return recyclingTipRepository.findById(id)
+                .map(existingTip -> {
+                    existingTip.setTip(updatedTip.getTip());
+                    RecyclingTip savedTip = recyclingTipRepository.save(existingTip);
+                    return ResponseEntity.ok(savedTip);
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    // Delete a Recycling Tip
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteRecyclingTip(@PathVariable Long id) {
+        return recyclingTipRepository.findById(id)
+                .map(tip -> {
+                    recyclingTipRepository.delete(tip);
+                    return ResponseEntity.ok("Recycling Tip deleted successfully");
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("Recycling Tip not found"));
+    }
+
+
 }
